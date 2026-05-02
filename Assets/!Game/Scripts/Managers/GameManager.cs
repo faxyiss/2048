@@ -54,6 +54,8 @@ public class GameManager : MonoBehaviour
 		HandleAdTrigger();
 
 		UIManager.Instance.HideGameOver();
+		UIManager.Instance.HideGameWon();
+
 		State = GameState.Playing;
 		UIManager.Instance.ShowGamePanel();
 
@@ -168,10 +170,12 @@ public class GameManager : MonoBehaviour
 	public void GoToMenu()
 	{
 		HandleAdTrigger();
-
+		
 		State = GameState.Menu;
-		UIManager.Instance.HideGameOver(); // Paneli kapat
-		UIManager.Instance.ShowMenu();     // Ana menüyü aç
+		UIManager.Instance.HideGameOver();
+		UIManager.Instance.HideGameWon(); // Paneli kapat
+		UIManager.Instance.ShowMenu();
+		    // Ana menüyü aç
 	}
 
 }

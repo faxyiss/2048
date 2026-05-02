@@ -21,6 +21,7 @@ public class AdManager : MonoBehaviour
 
 	void Start()
 	{
+		Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
 		MobileAds.Initialize(initStatus => { });
 		LoadBannerAd();
 	}

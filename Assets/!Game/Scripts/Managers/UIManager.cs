@@ -21,6 +21,10 @@ public class UIManager : MonoBehaviour
 	public TextMeshProUGUI scoreValueText;    // Hiyerarşideki: ScoreValueText
 	public TextMeshProUGUI maxScoreValueText; // Hiyerarşideki: MaxScoreValueText
 
+	[Header("Game Won Referansları")]
+	// GameObject yerine CanvasGroup kullanıyoruz ki şeffaflık animasyonu (Fade) yapabilelim[cite: 1]
+	public CanvasGroup gameWonCanvasGroup;
+
 	[Header("Game Over Referansları")]
 	public CanvasGroup gameOverCanvasGroup;
 	public TextMeshProUGUI gameOverResultLabelText; // "SCORE" veya "NEW BEST!" yazacak kısım
@@ -100,7 +104,7 @@ public class UIManager : MonoBehaviour
 		menuPanel.SetActive(true);
 		if (gamePanel != null) gamePanel.SetActive(false);
 		if (gameOverPanel != null) gameOverPanel.SetActive(false);
-
+		HideGameWon();
 		AdManager.Instance.HideBanner();
 	}
 
@@ -150,5 +154,30 @@ public class UIManager : MonoBehaviour
 
 		// Butonu %10 oranında anlık küçültüp geri zıplat (Punch Scale)
 		buttonTransform.DOPunchScale(new Vector3(-0.1f, -0.1f, 0), 0.2f, 10, 1);
+	}
+
+	public void ShowGameWon()
+	{
+		if (gameWonCanvasGroup == null) return;
+
+		gameWonCanvasGroup.gameObject.SetActive(true);
+		gameWonCanvasGroup.alpha = 0f;
+		gameWonCanvasGroup.blocksRaycasts = true;
+		gameWonCanvasGroup.transform.localScale = Vector3.one * 0.8f; // Küçük başlasın[cite: 1]
+
+		// DOTween ile yavaşça belirme ve büyüme animasyonu[cite: 1]
+		gameWonCanvasGroup.DOFade(1f, 0.5f).SetEase(Ease.OutQuad);
+		gameWonCanvasGroup.transform.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack);
+	}
+	public void HideGameWon()
+	{
+		if (gameWonCanvasGroup != null && gameWonCanvasGroup.gameObject.activeSelf)
+		{
+			gameWonCanvasGroup.blocksRaycasts = false;
+			gameWonCanvasGroup.DOFade(0f, 0.3f).OnComplete(() =>
+			{
+				gameWonCanvasGroup.gameObject.SetActive(false);
+			});
+		}
 	}
 }
