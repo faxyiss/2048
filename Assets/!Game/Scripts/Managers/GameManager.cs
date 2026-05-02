@@ -101,6 +101,7 @@ public class GameManager : MonoBehaviour
 				{
 					State = GameState.Won;
 					Debug.Log($"<color=yellow>TEBRİKLER! 2048'e Ulaştın! Skor: {boardSystem.Score}</color>");
+					UIManager.Instance.ShowGameWon();
 				}
 				else
 				{
