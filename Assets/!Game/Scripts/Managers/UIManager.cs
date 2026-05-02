@@ -100,6 +100,8 @@ public class UIManager : MonoBehaviour
 		menuPanel.SetActive(true);
 		if (gamePanel != null) gamePanel.SetActive(false);
 		if (gameOverPanel != null) gameOverPanel.SetActive(false);
+
+		AdManager.Instance.HideBanner();
 	}
 
 	public void ShowGamePanel()
@@ -107,6 +109,8 @@ public class UIManager : MonoBehaviour
 		menuPanel.SetActive(false);
 		if (gameOverPanel != null) gameOverPanel.SetActive(false);
 		if (gamePanel != null) gamePanel.SetActive(true);
+
+		AdManager.Instance.ShowBanner();
 	}
 
 	public void ShowGameOver(int score, bool isNewBest)

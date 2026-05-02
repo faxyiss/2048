@@ -16,6 +16,9 @@ public class GameManager : MonoBehaviour
 
 	private bool isAnimating = false; // INPUT KİLİDİ
 
+	private int adCounter = 0;
+	private const int AdShowFrequency = 3;
+
 	void Awake()
 	{
 		Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
@@ -37,8 +40,19 @@ public class GameManager : MonoBehaviour
 	void OnEnable() { InputManager.OnSwipeDetected += HandleSwipe; }
 	void OnDisable() { InputManager.OnSwipeDetected -= HandleSwipe; }
 
+	public void HandleAdTrigger()
+	{
+		adCounter++;
+		if (adCounter >= AdShowFrequency)
+		{
+			AdManager.Instance.ShowInterstitial();
+			adCounter = 0; // Sayacı sıfırla
+		}
+	}
 	public async void StartNewGame()
 	{
+		HandleAdTrigger();
+
 		UIManager.Instance.HideGameOver();
 		State = GameState.Playing;
 		UIManager.Instance.ShowGamePanel();
@@ -153,8 +167,11 @@ public class GameManager : MonoBehaviour
 
 	public void GoToMenu()
 	{
+		HandleAdTrigger();
+
 		State = GameState.Menu;
 		UIManager.Instance.HideGameOver(); // Paneli kapat
 		UIManager.Instance.ShowMenu();     // Ana menüyü aç
 	}
+
 }

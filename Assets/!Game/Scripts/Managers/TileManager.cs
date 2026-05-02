@@ -136,9 +136,11 @@ public class TileManager : MonoBehaviour
 
 	public void ClearAllTiles()
 	{
-		// tileContainer (taşların ebeveyni) içindeki tüm çocukları bul ve sil
 		foreach (Transform child in tileContainer)
 		{
+			// ÖNEMLİ: Obje üzerindeki tüm DOTween animasyonlarını durdurur
+			child.DOKill();
+
 			Destroy(child.gameObject);
 		}
 	}
