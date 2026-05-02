@@ -134,6 +134,15 @@ public class TileManager : MonoBehaviour
 		activeTiles = nextTiles;
 	}
 
+	public void ClearAllTiles()
+	{
+		// tileContainer (taşların ebeveyni) içindeki tüm çocukları bul ve sil
+		foreach (Transform child in tileContainer)
+		{
+			Destroy(child.gameObject);
+		}
+	}
+
 	private async UniTask UpdateMergedTileAsync(Tile baseTile, int newValue)
 	{
 		await UniTask.Delay(System.TimeSpan.FromSeconds(0.15f));

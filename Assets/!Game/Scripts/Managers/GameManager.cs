@@ -39,20 +39,23 @@ public class GameManager : MonoBehaviour
 
 	public async void StartNewGame()
 	{
+		UIManager.Instance.HideGameOver();
 		State = GameState.Playing;
-
 		UIManager.Instance.ShowGamePanel();
+
+		// YENİ EKLENEN SATIR: Eski oyundan kalan tüm taşları sahneden sil!
+		TileManager.Instance.ClearAllTiles();
 
 		GridManager.Instance.GenerateGrid();
 
-		// ÇOK ÖNEMLİ: Unity'nin GridLayoutGroup sisteminin kutuları ekrandaki
-		// doğru yerlerine yerleştirmesi için 1 kare (frame) bekliyoruz.
-		// Bu kodu yazmazsak hücre pozisyonları hesaplanamadığı için taşlar bug'a girer.
-		await UniTask.Yield();
+		await UniTask.Yield(); // Grid'in oluşması için 1 frame bekle
 
 		boardSystem = new BoardSystem(gridSize);
 		TileManager.Instance.InitializeGrid(gridSize);
 
+		UpdateScoresUI();
+
+		// İlk taşları doğur
 		if (boardSystem.SpawnRandomTile(out int x1, out int y1, out int val1))
 			TileManager.Instance.SpawnTile(x1, y1, val1);
 
@@ -76,7 +79,7 @@ public class GameManager : MonoBehaviour
 			{
 				// 1. Görsel animasyonların bitmesini bekle
 				await TileManager.Instance.AnimateMovesAsync(receipt);
-
+				UpdateScoresUI();
 				// 2. KAZANDI MI KONTROLÜ
 				if (boardSystem.CheckWinCondition())
 				{
@@ -95,7 +98,15 @@ public class GameManager : MonoBehaviour
 					if (boardSystem.CheckGameOver())
 					{
 						State = GameState.GameOver;
-						Debug.Log($"<color=red>OYUN BİTTİ! Yapacak hamle kalmadı. Skor: {boardSystem.Score}</color>");
+
+						int currentScore = boardSystem.Score;
+						int highScore = PlayerPrefs.GetInt("HighScore_" + gridSize, 0);
+
+						// Eğer skor rekoru kırdıysa (ve 0'dan büyükse) New Best yazsın
+						bool isNewBest = currentScore >= highScore && currentScore > 0;
+
+						// UIManager'a Game Over panelini açması için emir ver
+						UIManager.Instance.ShowGameOver(currentScore, isNewBest);
 					}
 				}
 			}
@@ -106,7 +117,6 @@ public class GameManager : MonoBehaviour
 			}
 		}
 	}
-
 	public void SelectGridSize(int size)
 	{
 		gridSize = size;
@@ -123,5 +133,28 @@ public class GameManager : MonoBehaviour
 
 		// UIManager'a emir ver: Ekranı güncelle!
 		UIManager.Instance.UpdateMenuSelection(size, buttonRect, highScore);
+	}
+
+	private void UpdateScoresUI()
+	{
+		int currentScore = boardSystem.Score;
+		string saveKey = "HighScore_" + gridSize; // Her modun skoru ayrı kaydedilir
+		int highScore = PlayerPrefs.GetInt(saveKey, 0);
+
+		if (currentScore > highScore)
+		{
+			highScore = currentScore;
+			PlayerPrefs.SetInt(saveKey, highScore);
+			PlayerPrefs.Save();
+		}
+
+		UIManager.Instance.UpdateGameScores(currentScore, highScore);
+	}
+
+	public void GoToMenu()
+	{
+		State = GameState.Menu;
+		UIManager.Instance.HideGameOver(); // Paneli kapat
+		UIManager.Instance.ShowMenu();     // Ana menüyü aç
 	}
 }
