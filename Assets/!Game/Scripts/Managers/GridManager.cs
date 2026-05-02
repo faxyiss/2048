@@ -31,8 +31,6 @@ public class GridManager : MonoBehaviour
 
 	void Awake()
 	{
-		Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
-
 		if (Instance != null && Instance != this)
 		{
 			Destroy(gameObject);

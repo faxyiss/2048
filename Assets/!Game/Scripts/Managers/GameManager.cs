@@ -1,11 +1,12 @@
-using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class GameManager : MonoBehaviour
 {
 	public static GameManager Instance { get; private set; }
-	public enum GameState { Playing, GameOver, Won }
+	public enum GameState { Menu, Playing, GameOver, Won }
 	public GameState State { get; private set; } // Oyunun anlık durumu
 
 	[Header("Oyun Ayarları")]
@@ -17,23 +18,37 @@ public class GameManager : MonoBehaviour
 
 	void Awake()
 	{
+		Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
 		if (Instance != null && Instance != this) Destroy(gameObject);
 		else Instance = this;
 	}
 
 	void Start()
 	{
-		StartNewGame();
+		// 2. Oyun başladığında direkt oyuna girmek yerine menüyü açıyoruz
+		State = GameState.Menu;
+		UIManager.Instance.ShowMenu();
+
+		// Menünün varsayılan boyut (Örn: 4x4) ayarlarıyla yüklenmesini sağlıyoruz
+		int highScore = PlayerPrefs.GetInt("HighScore_" + gridSize, 0);
+		UIManager.Instance.UpdateMenuSelection(gridSize, null, highScore);
 	}
 
 	void OnEnable() { InputManager.OnSwipeDetected += HandleSwipe; }
 	void OnDisable() { InputManager.OnSwipeDetected -= HandleSwipe; }
 
-	public void StartNewGame()
+	public async void StartNewGame()
 	{
 		State = GameState.Playing;
+
+		UIManager.Instance.ShowGamePanel();
+
 		GridManager.Instance.GenerateGrid();
-		Canvas.ForceUpdateCanvases();
+
+		// ÇOK ÖNEMLİ: Unity'nin GridLayoutGroup sisteminin kutuları ekrandaki
+		// doğru yerlerine yerleştirmesi için 1 kare (frame) bekliyoruz.
+		// Bu kodu yazmazsak hücre pozisyonları hesaplanamadığı için taşlar bug'a girer.
+		await UniTask.Yield();
 
 		boardSystem = new BoardSystem(gridSize);
 		TileManager.Instance.InitializeGrid(gridSize);
@@ -90,5 +105,23 @@ public class GameManager : MonoBehaviour
 				isAnimating = false;
 			}
 		}
+	}
+
+	public void SelectGridSize(int size)
+	{
+		gridSize = size;
+		int highScore = PlayerPrefs.GetInt("HighScore_" + gridSize, 0);
+
+		// 3. Tıklanan butonu sahneden otomatik olarak yakalıyoruz!
+		GameObject clickedObj = EventSystem.current.currentSelectedGameObject;
+		RectTransform buttonRect = null;
+
+		if (clickedObj != null)
+		{
+			buttonRect = clickedObj.GetComponent<RectTransform>();
+		}
+
+		// UIManager'a emir ver: Ekranı güncelle!
+		UIManager.Instance.UpdateMenuSelection(size, buttonRect, highScore);
 	}
 }
